@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync 120 — NEET & Forensic Science Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* =========================================================
+       CSS VARIABLES & RESET
+    ========================================================= */
+    :root {
+      --bg:        #080F1A;
+      --bg2:       #0D1829;
+      --bg3:       #111F35;
+      --card:      #0E1C30;
+      --card2:     #132236;
+      --border:    rgba(255,255,255,0.07);
+      --border2:   rgba(255,255,255,0.13);
+      --text:      #E8F0FA;
+      --text2:     #8FA5C4;
+      --text3:     #5A738F;
+      --teal:      #00D4AA;
+      --teal2:     #00B894;
+      --gold:      #FFC857;
+      --gold2:     #F9A825;
+      --pink:      #FF6B9D;
+      --blue:      #4A9EFF;
+      --purple:    #A78BFA;
+      --phy:       #4A9EFF;
+      --chem:      #FF6B9D;
+      --bio:       #00D4AA;
+      --crim:      #FFC857;
+      --shadow:    0 4px 24px rgba(0,0,0,0.4);
+      --radius:    16px;
+      --radius-sm: 10px;
+    }
+    [data-theme="light"] {
+      --bg:        #F0F4FB;
+      --bg2:       #E4ECF7;
+      --bg3:       #DAE6F5;
+      --card:      #FFFFFF;
+      --card2:     #F5F8FF;
+      --border:    rgba(0,0,0,0.07);
+      --border2:   rgba(0,0,0,0.13);
+      --text:      #0D1829;
+      --text2:     #3D5A80;
+      --text3:     #7A9BBC;
+      --shadow:    0 4px 24px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background .3s, color .3s;
+    }
+    /* dot grid background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: radial-gradient(circle, var(--border2) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: .5;
+    }
+
+    /* =========================================================
+       LAYOUT
+    ========================================================= */
+    #app { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 0 16px 80px; }
+
+    /* =========================================================
+       TOP BAR
+    ========================================================= */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 0 14px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; gap: 12px;
+    }
+    .topbar-logo {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .logo-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--teal), var(--blue));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; box-shadow: 0 4px 16px rgba(0,212,170,0.35);
+    }
+    .logo-text { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; }
+    .logo-text span { color: var(--teal); }
+    .logo-sub { font-size: .72rem; color: var(--text2); font-weight: 500; margin-top: 1px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .streak-badge {
+      display: flex; align-items: center; gap: 6px; padding: 7px 14px;
+      background: linear-gradient(135deg,rgba(255,200,87,.15),rgba(255,200,87,.05));
+      border: 1px solid rgba(255,200,87,.3); border-radius: 100px;
+      font-size: .82rem; font-weight: 700; color: var(--gold);
+    }
+    .day-badge {
+      display: flex; align-items: center; gap: 6px; padding: 7px 14px;
+      background: linear-gradient(135deg,rgba(74,158,255,.15),rgba(74,158,255,.05));
+      border: 1px solid rgba(74,158,255,.3); border-radius: 100px;
+      font-size: .82rem; font-weight: 700; color: var(--blue);
+      font-family: 'Space Mono', monospace;
+    }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border2);
+      background: var(--card); cursor: pointer; display: flex; align-items: center;
+      justify-content: center; font-size: 16px; transition: all .2s; color: var(--text);
+    }
+    .icon-btn:hover { background: var(--card2); border-color: var(--teal); transform: scale(1.07); }
+    .qr-wrap { position: relative; }
+    .qr-popup {
+      display: none; position: absolute; top: 48px; right: 0; z-index: 999;
+      background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius);
+      padding: 16px; text-align: center; box-shadow: var(--shadow);
+      width: 200px;
+    }
+    .qr-popup.open { display: block; animation: fadeDown .2s ease; }
+    .qr-popup img { width: 180px; height: 180px; border-radius: 8px; background: #fff; padding: 6px; display: block; margin: 0 auto; }
+    .qr-popup p { font-size: .72rem; color: var(--text2); margin-top: 8px; }
+
+    /* =========================================================
+       NAV TABS
+    ========================================================= */
+    .nav { display: flex; gap: 6px; padding: 16px 0 0; overflow-x: auto; }
+    .nav-tab {
+      padding: 9px 20px; border-radius: 100px; cursor: pointer; font-size: .87rem;
+      font-weight: 600; white-space: nowrap; transition: all .22s;
+      border: 1px solid var(--border); background: transparent; color: var(--text2);
+    }
+    .nav-tab:hover { border-color: var(--teal); color: var(--teal); }
+    .nav-tab.active {
+      background: linear-gradient(135deg,var(--teal),var(--blue));
+      border-color: transparent; color: #fff;
+      box-shadow: 0 4px 16px rgba(0,212,170,.3);
+    }
+
+    /* =========================================================
+       TAB PANELS
+    ========================================================= */
+    .tab-panel { display: none; padding-top: 24px; }
+    .tab-panel.active { display: block; animation: fadeIn .3s ease; }
+
+    /* =========================================================
+       QUOTE BANNER
+    ========================================================= */
+    .quote-banner {
+      background: linear-gradient(135deg,rgba(0,212,170,.1),rgba(74,158,255,.1));
+      border: 1px solid rgba(0,212,170,.2); border-radius: var(--radius);
+      padding: 16px 22px; margin-bottom: 22px; display: flex;
+      align-items: center; gap: 14px;
+    }
+    .quote-icon { font-size: 28px; flex-shrink: 0; }
+    .quote-text { font-size: .92rem; color: var(--text); font-style: italic; font-weight: 500; line-height: 1.5; }
+    .quote-author { font-size: .78rem; color: var(--text2); margin-top: 4px; font-style: normal; font-weight: 600; }
+
+    /* =========================================================
+       OVERALL PROGRESS
+    ========================================================= */
+    .overall-card {
+      background: linear-gradient(135deg,var(--teal),var(--blue));
+      border-radius: var(--radius); padding: 26px 28px; margin-bottom: 22px;
+      position: relative; overflow: hidden;
+    }
+    .overall-card::after {
+      content: ''; position: absolute; right: -40px; top: -40px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: rgba(255,255,255,.07); pointer-events: none;
+    }
+    .overall-label { font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.7); letter-spacing: 1px; text-transform: uppercase; }
+    .overall-pct { font-family: 'Space Mono',monospace; font-size: 3.2rem; font-weight: 700; color: #fff; line-height: 1; margin: 6px 0 4px; }
+    .overall-sub { font-size: .85rem; color: rgba(255,255,255,.8); margin-bottom: 16px; }
+    .overall-bar-bg { background: rgba(255,255,255,.25); border-radius: 100px; height: 10px; }
+    .overall-bar-fill { background: #fff; border-radius: 100px; height: 10px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+
+    /* =========================================================
+       SUBJECT CARDS GRID
+    ========================================================= */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 22px; }
+    .subj-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px; cursor: pointer;
+      transition: all .25s; position: relative; overflow: hidden;
+    }
+    .subj-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: 3px 3px 0 0;
+    }
+    .subj-card.phy::before { background: var(--phy); }
+    .subj-card.chem::before { background: var(--chem); }
+    .subj-card.bio::before { background: var(--bio); }
+    .subj-card.crim::before { background: var(--crim); }
+    .subj-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--border2); }
+    .subj-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+    .subj-icon { font-size: 30px; }
+    .subj-pct {
+      font-family: 'Space Mono', monospace; font-size: 1.6rem; font-weight: 700;
+    }
+    .subj-card.phy .subj-pct { color: var(--phy); }
+    .subj-card.chem .subj-pct { color: var(--chem); }
+    .subj-card.bio .subj-pct { color: var(--bio); }
+    .subj-card.crim .subj-pct { color: var(--crim); }
+    .subj-name { font-size: 1rem; font-weight: 800; margin-bottom: 2px; }
+    .subj-count { font-size: .78rem; color: var(--text2); margin-bottom: 14px; }
+    .prog-bar-bg { background: var(--bg3); border-radius: 100px; height: 7px; overflow: hidden; }
+    .prog-bar-fill { height: 7px; border-radius: 100px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+    .subj-card.phy .prog-bar-fill { background: linear-gradient(90deg,#4A9EFF,#79C5FF); }
+    .subj-card.chem .prog-bar-fill { background: linear-gradient(90deg,#FF6B9D,#FF9DBB); }
+    .subj-card.bio .prog-bar-fill { background: linear-gradient(90deg,#00D4AA,#55EDD4); }
+    .subj-card.crim .prog-bar-fill { background: linear-gradient(90deg,#FFC857,#FFE08A); }
+    .subj-footer { margin-top: 14px; font-size: .76rem; color: var(--text2); display: flex; justify-content: space-between; }
+    .click-hint { font-size: .73rem; color: var(--text3); }
+
+    /* =========================================================
+       WEEKLY SUMMARY
+    ========================================================= */
+    .section-title { font-size: 1rem; font-weight: 800; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; }
+    .week-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 16px; text-align: center; transition: all .2s;
+    }
+    .week-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .week-label { font-size: .73rem; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+    .week-num { font-family: 'Space Mono',monospace; font-size: 1.6rem; font-weight: 700; color: var(--teal); }
+    .week-sub { font-size: .72rem; color: var(--text3); margin-top: 4px; }
+    .week-bar-wrap { height: 4px; background: var(--bg3); border-radius: 100px; margin-top: 10px; overflow: hidden; }
+    .week-bar-fill { height: 4px; background: linear-gradient(90deg,var(--teal),var(--blue)); border-radius: 100px; transition: width .8s; }
+
+    /* =========================================================
+       TOPICS PANEL
+    ========================================================= */
+    .subject-section { margin-bottom: 28px; }
+    .subject-section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px 22px; margin-bottom: 2px; cursor: pointer; transition: all .2s;
+    }
+    .subject-section-header:hover { border-color: var(--border2); }
+    .ssh-left { display: flex; align-items: center; gap: 14px; }
+    .ssh-icon { font-size: 26px; }
+    .ssh-name { font-size: 1rem; font-weight: 800; }
+    .ssh-meta { font-size: .78rem; color: var(--text2); }
+    .ssh-right { display: flex; align-items: center; gap: 12px; }
+    .ssh-pct { font-family: 'Space Mono',monospace; font-size: 1.1rem; font-weight: 700; }
+    .ssh-chevron { font-size: 14px; color: var(--text3); transition: transform .3s; }
+    .subject-section.open .ssh-chevron { transform: rotate(180deg); }
+    .topics-list { display: none; background: var(--card2); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); overflow: hidden; }
+    .subject-section.open .topics-list { display: block; }
+    .class-header { padding: 10px 22px 6px; font-size: .72rem; font-weight: 700; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; background: var(--bg3); }
+    .topic-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 22px; border-bottom: 1px solid var(--border);
+      transition: background .15s; cursor: pointer;
+    }
+    .topic-row:last-child { border-bottom: none; }
+    .topic-row:hover { background: var(--card); }
+    .topic-row.done { opacity: .65; }
+    .topic-cb {
+      width: 20px; height: 20px; flex-shrink: 0; border-radius: 6px;
+      border: 2px solid var(--border2); background: transparent;
+      appearance: none; cursor: pointer; position: relative; transition: all .2s;
+    }
+    .topic-cb:checked { border-color: var(--teal); background: var(--teal); }
+    .topic-cb:checked::after {
+      content: '✓'; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%); color: #fff; font-size: 12px; font-weight: 700;
+    }
+    .topic-label { font-size: .88rem; color: var(--text); font-weight: 500; flex: 1; }
+    .topic-row.done .topic-label { text-decoration: line-through; color: var(--text3); }
+    .topic-num { font-family: 'Space Mono',monospace; font-size: .72rem; color: var(--text3); flex-shrink: 0; }
+
+    /* =========================================================
+       DAILY TRACKER
+    ========================================================= */
+    .day-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .day-nav-btn {
+      padding: 8px 18px; border-radius: 10px; border: 1px solid var(--border2);
+      background: var(--card); cursor: pointer; font-size: .85rem; font-weight: 600;
+      color: var(--text); transition: all .2s;
+    }
+    .day-nav-btn:hover { background: var(--teal); border-color: var(--teal); color: #fff; }
+    .day-nav-btn:disabled { opacity: .4; cursor: default; }
+    .day-label {
+      font-family: 'Space Mono',monospace; font-size: 1.4rem; font-weight: 700;
+      color: var(--teal); flex: 1; text-align: center;
+    }
+    .day-date { font-size: .78rem; color: var(--text2); text-align: center; }
+    .today-badge {
+      display: inline-block; background: var(--teal); color: #fff;
+      font-size: .68rem; font-weight: 700; padding: 2px 8px; border-radius: 100px;
+      margin-left: 8px; vertical-align: middle;
+    }
+    .day-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .day-grid { grid-template-columns: 1fr; } }
+    .day-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .day-card h3 { font-size: .88rem; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .notes-area {
+      width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text);
+      font-family: 'Plus Jakarta Sans',sans-serif; font-size: .87rem; resize: vertical;
+      min-height: 150px; transition: border .2s;
+    }
+    .notes-area:focus { outline: none; border-color: var(--teal); }
+    .mini-topic-list { max-height: 320px; overflow-y: auto; }
+    .mini-topic-list::-webkit-scrollbar { width: 4px; }
+    .mini-topic-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+    .mini-topic { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .mini-topic:last-child { border-bottom: none; }
+    .mini-topic label { font-size: .82rem; color: var(--text); cursor: pointer; flex: 1; line-height: 1.3; }
+    .mini-topic-subj { font-size: .68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; flex-shrink: 0; }
+    .ms-phy { background: rgba(74,158,255,.15); color: var(--phy); }
+    .ms-chem { background: rgba(255,107,157,.15); color: var(--chem); }
+    .ms-bio { background: rgba(0,212,170,.15); color: var(--bio); }
+    .ms-crim { background: rgba(255,200,87,.15); color: var(--crim); }
+    /* Day grid for 120 days */
+    .days-grid-wrap { margin-bottom: 20px; }
+    .days-mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px,1fr)); gap: 5px; }
+    .day-dot {
+      height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border);
+      background: var(--card); color: var(--text2); transition: all .18s; font-family: 'Space Mono',monospace;
+    }
+    .day-dot:hover { border-color: var(--teal); color: var(--teal); }
+    .day-dot.has-notes { border-color: rgba(0,212,170,.4); background: rgba(0,212,170,.08); }
+    .day-dot.current { background: var(--teal); border-color: var(--teal); color: #fff; box-shadow: 0 0 12px rgba(0,212,170,.4); }
+    .day-dot.future { opacity: .4; }
+
+    /* =========================================================
+       UTILITIES & ANIMATIONS
+    ========================================================= */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 22px; border-radius: 10px; font-size: .87rem;
+      font-weight: 700; cursor: pointer; transition: all .2s; border: none;
+    }
+    .btn-primary { background: linear-gradient(135deg,var(--teal),var(--blue)); color: #fff; box-shadow: 0 4px 16px rgba(0,212,170,.25); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0,212,170,.4); }
+    .btn-danger { background: transparent; color: #FF6B6B; border: 1px solid rgba(255,107,107,.4); }
+    .btn-danger:hover { background: rgba(255,107,107,.1); }
+    .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+    .btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+    .flex-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .mt-12 { margin-top: 12px; }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius-sm);
+      padding: 14px 20px; font-size: .88rem; font-weight: 600; color: var(--text);
+      box-shadow: var(--shadow); display: none; align-items: center; gap: 10px;
+      max-width: 320px; animation: slideUp .3s ease;
+    }
+    .toast.show { display: flex; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: none; } }
+    @keyframes fadeDown { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: none; } }
+    @keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: none; } }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    .progress-ring { animation: pulse 2s ease-in-out infinite; display: inline-block; }
+    .week-item-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; margin-top: 16px; }
+    @media (max-width: 600px) { .week-item-row { grid-template-columns: 1fr 1fr; } }
+    .reset-confirm { display: none; background: rgba(255,107,107,.1); border: 1px solid rgba(255,107,107,.3); border-radius: var(--radius-sm); padding: 14px 18px; margin-top: 12px; font-size: .88rem; }
+    .reset-confirm.show { display: block; }
+    select {
+      background: var(--card); border: 1px solid var(--border2); border-radius: 8px;
+      padding: 8px 12px; color: var(--text); font-family: 'Plus Jakarta Sans',sans-serif;
+      font-size: .85rem; cursor: pointer;
+    }
+    /* mini progress bar for ssh */
+    .ssh-bar-bg { width: 90px; height: 5px; background: var(--bg3); border-radius: 100px; overflow: hidden; }
+    .ssh-bar-fill { height: 5px; border-radius: 100px; transition: width .8s; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="logo-icon">📚</div>
+      <div>
+        <div class="logo-text">Study<span>Sync</span> 120</div>
+        <div class="logo-sub">NEET · Forensic Science · 120 Days</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="streak-badge">🔥 <span id="streakCount">0</span> day streak</div>
+      <div class="day-badge" id="dayBadge">Day 1</div>
+      <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+      <div class="qr-wrap">
+        <button class="icon-btn" id="qrBtn" title="Share / QR Code">📲</button>
+        <div class="qr-popup" id="qrPopup">
+          <img id="qrImg" src="" alt="QR Code" />
+          <p>Scan to open on any device</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV TABS -->
+  <div class="nav">
+    <button class="nav-tab active" data-tab="dashboard">🏠 Dashboard</button>
+    <button class="nav-tab" data-tab="topics">📋 Topics</button>
+    <button class="nav-tab" data-tab="daily">📅 Daily Tracker</button>
+    <button class="nav-tab" data-tab="weekly">📊 Weekly Summary</button>
+    <button class="nav-tab" data-tab="settings">⚙️ Settings</button>
+  </div>
+
+  <!-- ============ DASHBOARD TAB ============ -->
+  <div class="tab-panel active" id="tab-dashboard">
+    <div class="quote-banner">
+      <div class="quote-icon">💬</div>
+      <div>
+        <div class="quote-text" id="quoteText">Loading quote...</div>
+        <div class="quote-author" id="quoteAuthor"></div>
+      </div>
+    </div>
+
+    <div class="overall-card">
+      <div class="overall-label">Overall Progress</div>
+      <div class="overall-pct" id="overallPct">0%</div>
+      <div class="overall-sub" id="overallSub">0 of 0 topics completed</div>
+      <div class="overall-bar-bg">
+        <div class="overall-bar-fill" id="overallBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="cards-grid" id="subjectCards">
+      <!-- Filled by JS -->
+    </div>
+
+    <div class="section-title">📅 120-Day Calendar</div>
+    <div class="days-grid-wrap">
+      <div class="days-mini-grid" id="miniCalendar"></div>
+    </div>
+  </div>
+
+  <!-- ============ TOPICS TAB ============ -->
+  <div class="tab-panel" id="tab-topics">
+    <div class="flex-row" style="margin-bottom:16px">
+      <select id="topicsFilter">
+        <option value="all">All Subjects</option>
+        <option value="phy">⚛️ Physics</option>
+        <option value="chem">🧪 Chemistry</option>
+        <option value="bio">🧬 Biology</option>
+        <option value="crim">🕵️ Criminology</option>
+      </select>
+      <select id="topicsStatus">
+        <option value="all">All Topics</option>
+        <option value="pending">🔲 Pending</option>
+        <option value="done">✅ Completed</option>
+      </select>
+    </div>
+    <div id="topicsContainer"><!-- Filled by JS --></div>
+  </div>
+
+  <!-- ============ DAILY TRACKER TAB ============ -->
+  <div class="tab-panel" id="tab-daily">
+    <div class="day-nav">
+      <button class="day-nav-btn" id="prevDay">← Prev</button>
+      <div style="flex:1;text-align:center">
+        <div class="day-label" id="dayLabel">Day 1</div>
+        <div class="day-date" id="dayDate"></div>
+      </div>
+      <button class="day-nav-btn" id="nextDay">Next →</button>
+    </div>
+
+    <div class="day-grid">
+      <div class="day-card">
+        <h3>📝 Notes for this day</h3>
+        <textarea class="notes-area" id="dayNotes" placeholder="Write your study notes, revisions, thoughts…"></textarea>
+        <div class="flex-row mt-12">
+          <button class="btn btn-primary" id="saveNotes">💾 Save Notes</button>
+          <button class="btn btn-ghost" id="goToday">📍 Go to Today</button>
+        </div>
+      </div>
+      <div class="day-card">
+        <h3>✅ Topics studied today</h3>
+        <p style="font-size:.78rem;color:var(--text3);margin-bottom:12px">Checking a topic marks it complete globally</p>
+        <div class="mini-topic-list" id="dailyTopicList">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ WEEKLY SUMMARY TAB ============ -->
+  <div class="tab-panel" id="tab-weekly">
+    <div class="section-title">📆 Progress by Week</div>
+    <div class="week-grid" id="weekGrid"><!-- Filled by JS --></div>
+
+    <div class="section-title" style="margin-top:28px">📈 Subject Breakdown</div>
+    <div class="week-item-row" id="weekSubjBreakdown"><!-- Filled by JS --></div>
+
+    <div class="section-title" style="margin-top:28px">🏆 Achievements</div>
+    <div class="week-grid" id="achievementsGrid"><!-- Filled by JS --></div>
+  </div>
+
+  <!-- ============ SETTINGS TAB ============ -->
+  <div class="tab-panel" id="tab-settings">
+    <div class="day-card" style="max-width:520px">
+      <h3 style="margin-bottom:16px">⚙️ Tracker Settings</h3>
+
+      <div style="margin-bottom:18px">
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:6px">📅 Study Start Date</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <input type="date" id="startDateInput" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:.85rem" />
+          <button class="btn btn-primary" id="setStartDate">Set</button>
+        </div>
+        <div style="font-size:.75rem;color:var(--text2);margin-top:6px">Current: <span id="currentStartDate">Not set</span></div>
+      </div>
+
+      <div style="margin-bottom:18px">
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:6px">🌗 Theme</div>
+        <div class="flex-row">
+          <button class="btn btn-ghost" id="setDark">🌙 Dark</button>
+          <button class="btn btn-ghost" id="setLight">☀️ Light</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:18px">
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:6px">💾 Data</div>
+        <div class="flex-row">
+          <button class="btn btn-ghost" id="exportData">📤 Export JSON</button>
+        </div>
+      </div>
+
+      <hr style="border-color:var(--border);margin:20px 0" />
+
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:6px;color:#FF6B6B">⚠️ Reset All Progress</div>
+      <p style="font-size:.8rem;color:var(--text2);margin-bottom:12px">This will delete all topic completions and notes. This cannot be undone.</p>
+      <button class="btn btn-danger" id="resetBtn">🗑️ Reset All Data</button>
+      <div class="reset-confirm" id="resetConfirm">
+        <p style="margin-bottom:10px;font-weight:700">Are you sure? All progress will be lost.</p>
+        <div class="flex-row">
+          <button class="btn btn-danger" id="confirmReset">Yes, Reset Everything</button>
+          <button class="btn btn-ghost" id="cancelReset">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastIcon">✅</span>
+  <span id="toastMsg">Saved!</span>
+</div>
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+<script>
+/* -------------------------------------------------------
+   1. DATA DEFINITIONS
+------------------------------------------------------- */
+const SUBJECTS = {
+  phy: {
+    key: 'phy',
+    name: 'Physics',
+    icon: '⚛️',
+    cls: 'phy',
+    color: '#4A9EFF',
+    classes: {
+      'Class 11': [
+        'Physical World',
+        'Units and Measurements',
+        'Motion in a Straight Line',
+        'Motion in a Plane',
+        'Laws of Motion',
+        'Work, Energy and Power',
+        'System of Particles and Rotational Motion',
+        'Gravitation',
+        'Mechanical Properties of Solids',
+        'Mechanical Properties of Fluids',
+        'Thermal Properties of Matter',
+        'Thermodynamics',
+        'Kinetic Theory',
+        'Oscillations',
+        'Waves'
+      ],
+      'Class 12': [
+        'Electric Charges and Fields',
+        'Electrostatic Potential and Capacitance',
+        'Current Electricity',
+        'Moving Charges and Magnetism',
+        'Magnetism and Matter',
+        'Electromagnetic Induction',
+        'Alternating Current',
+        'Electromagnetic Waves',
+        'Ray Optics and Optical Instruments',
+        'Wave Optics',
+        'Dual Nature of Radiation and Matter',
+        'Atoms',
+        'Nuclei',
+        'Semiconductor Electronics'
+      ]
+    }
+  },
+  chem: {
+    key: 'chem',
+    name: 'Chemistry',
+    icon: '🧪',
+    cls: 'chem',
+    color: '#FF6B9D',
+    classes: {
+      'Class 11': [
+        'Some Basic Concepts of Chemistry',
+        'Structure of Atom',
+        'Classification of Elements and Periodicity',
+        'Chemical Bonding and Molecular Structure',
+        'States of Matter',
+        'Thermodynamics',
+        'Equilibrium',
+        'Redox Reactions',
+        'Hydrogen',
+        's-Block Elements',
+        'p-Block Elements',
+        'Organic Chemistry Basics',
+        'Hydrocarbons',
+        'Environmental Chemistry'
+      ],
+      'Class 12': [
+        'Solid State',
+        'Solutions',
+        'Electrochemistry',
+        'Chemical Kinetics',
+        'Surface Chemistry',
+        'General Principles of Metallurgy',
+        'p-Block Elements (12)',
+        'd and f Block Elements',
+        'Coordination Compounds',
+        'Haloalkanes and Haloarenes',
+        'Alcohols, Phenols and Ethers',
+        'Aldehydes, Ketones and Carboxylic Acids',
+        'Amines',
+        'Biomolecules',
+        'Polymers',
+        'Chemistry in Everyday Life'
+      ]
+    }
+  },
+  bio: {
+    key: 'bio',
+    name: 'Biology',
+    icon: '🧬',
+    cls: 'bio',
+    color: '#00D4AA',
+    classes: {
+      'Class 11': [
+        'The Living World',
+        'Biological Classification',
+        'Plant Kingdom',
+        'Animal Kingdom',
+        'Morphology of Flowering Plants',
+        'Anatomy of Flowering Plants',
+        'Structural Organisation in Animals',
+        'Cell: The Unit of Life',
+        'Biomolecules',
+        'Cell Cycle and Division',
+        'Transport in Plants',
+        'Mineral Nutrition',
+        'Photosynthesis in Higher Plants',
+        'Respiration in Plants',
+        'Plant Growth and Development',
+        'Digestion and Absorption',
+        'Breathing and Exchange of Gases',
+        'Body Fluids and Circulation',
+        'Excretory Products and Their Elimination',
+        'Locomotion and Movement',
+        'Neural Control and Coordination',
+        'Chemical Coordination and Integration'
+      ],
+      'Class 12': [
+        'Reproduction in Organisms',
+        'Sexual Reproduction in Flowering Plants',
+        'Human Reproduction',
+        'Reproductive Health',
+        'Principles of Inheritance and Variation',
+        'Molecular Basis of Inheritance',
+        'Evolution',
+        'Human Health and Disease',
+        'Strategies for Enhancement in Food Production',
+        'Microbes in Human Welfare',
+        'Biotechnology: Principles and Processes',
+        'Biotechnology and its Applications',
+        'Organisms and Populations',
+        'Ecosystem',
+        'Biodiversity and Conservation',
+        'Environmental Issues'
+      ]
+    }
+  },
+  crim: {
+    key: 'crim',
+    name: 'Criminology',
+    icon: '🕵️',
+    cls: 'crim',
+    color: '#FFC857',
+    classes: {
+      'Forensic Science Entrance': [
+        'Introduction to Criminology',
+        'Nature and Scope of Crime',
+        'Schools of Criminology',
+        'Criminal Behavior Theories',
+        'Juvenile Delinquency',
+        'White Collar Crime',
+        'Cyber Crime',
+        'Victimology',
+        'Criminal Justice System',
+        'Police Administration',
+        'Punishment and Correctional Methods',
+        'Penology',
+        'Crime Prevention Strategies',
+        'Forensic Psychology Basics',
+        'Criminal Investigation Process'
+      ]
+    }
+  }
+};
+
+// Build flat topic list with IDs
+const ALL_TOPICS = [];
+Object.values(SUBJECTS).forEach(subj => {
+  Object.entries(subj.classes).forEach(([cls, topics]) => {
+    topics.forEach((t, i) => {
+      ALL_TOPICS.push({ id: `${subj.key}_${cls}_${i}`, subj: subj.key, cls, name: t });
+    });
+  });
+});
+
+const QUOTES = [
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+  { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+  { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+  { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
+  { text: "The expert in anything was once a beginner.", author: "Helen Hayes" },
+  { text: "Dream big. Start small. Act now.", author: "Robin Sharma" },
+  { text: "Education is the most powerful weapon you can use to change the world.", author: "Nelson Mandela" },
+  { text: "Push yourself, because no one else is going to do it for you.", author: "Unknown" },
+  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+  { text: "Discipline is choosing between what you want now and what you want most.", author: "Abraham Lincoln" },
+  { text: "Little by little, a little becomes a lot.", author: "Tanzanian Proverb" },
+  { text: "You are braver than you believe, stronger than you seem.", author: "A.A. Milne" },
+  { text: "The harder you work for something, the greater you'll feel when you achieve it.", author: "Unknown" },
+  { text: "Great things are done by a series of small things brought together.", author: "Vincent Van Gogh" },
+  { text: "Stay focused. Your start does not determine how you finish.", author: "Unknown" },
+  { text: "Chemistry, physics, biology — the universe is written in equations.", author: "Unknown" },
+  { text: "NEET is not the end, it is the beginning of a healing journey.", author: "Unknown" },
+  { text: "Consistency is more important than perfection.", author: "Unknown" },
+  { text: "Every expert was once a student who refused to quit.", author: "Unknown" }
+];
+
+/* -------------------------------------------------------
+   2. STATE — load from localStorage
+------------------------------------------------------- */
+function loadState() {
+  try {
+    return JSON.parse(localStorage.getItem('studysync_state') || '{}');
+  } catch { return {}; }
+}
+function saveState(state) {
+  localStorage.setItem('studysync_state', JSON.stringify(state));
+}
+
+let state = loadState();
+// defaults
+if (!state.completed)   state.completed   = {};    // topicId -> true
+if (!state.notes)       state.notes       = {};    // dayNum -> string
+if (!state.dailyStudy)  state.dailyStudy  = {};    // dayNum -> {topicId: true}
+if (!state.startDate)   state.startDate   = null;
+if (!state.theme)       state.theme       = 'dark';
+if (!state.streakData)  state.streakData  = {};    // date -> bool
+
+// apply theme immediately
+document.documentElement.setAttribute('data-theme', state.theme);
+
+/* -------------------------------------------------------
+   3. COMPUTED HELPERS
+------------------------------------------------------- */
+function getStartDate() {
+  if (state.startDate) return new Date(state.startDate);
+  return null;
+}
+function getCurrentDay() {
+  const sd = getStartDate();
+  if (!sd) return 1;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.floor((today - sd) / 86400000) + 1;
+  return Math.max(1, Math.min(120, diff));
+}
+function getDayDate(dayNum) {
+  const sd = getStartDate();
+  if (!sd) return '';
+  const d = new Date(sd);
+  d.setDate(d.getDate() + dayNum - 1);
+  return d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+}
+function getSubjStats(subjKey) {
+  const subj = SUBJECTS[subjKey];
+  const topics = ALL_TOPICS.filter(t => t.subj === subjKey);
+  const done = topics.filter(t => state.completed[t.id]).length;
+  return { total: topics.length, done, pct: topics.length ? Math.round(done/topics.length*100) : 0 };
+}
+function getOverallStats() {
+  const total = ALL_TOPICS.length;
+  const done  = ALL_TOPICS.filter(t => state.completed[t.id]).length;
+  return { total, done, pct: total ? Math.round(done/total*100) : 0 };
+}
+function getStreak() {
+  let streak = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 0; i < 120; i++) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    if (state.streakData[key]) { streak++; } else { break; }
+  }
+  return streak;
+}
+function getWeekTopics(weekIdx) {
+  // topics completed that were first checked during this week's days
+  // simplified: count topics whose 'day' falls in week
+  const sd = getStartDate();
+  if (!sd) return 0;
+  const start = weekIdx * 7 + 1;
+  const end   = Math.min(start + 6, 120);
+  // count distinct topics studied in dailyStudy for those days
+  const done = new Set();
+  for (let d = start; d <= end; d++) {
+    const ds = state.dailyStudy[d] || {};
+    Object.keys(ds).forEach(id => done.add(id));
+  }
+  return done.size;
+}
+
+/* -------------------------------------------------------
+   4. RENDER FUNCTIONS
+------------------------------------------------------- */
+
+// -- Dashboard --
+function renderDashboard() {
+  // Quote
+  const q = QUOTES[Math.floor(Date.now()/86400000) % QUOTES.length];
+  document.getElementById('quoteText').textContent = `"${q.text}"`;
+  document.getElementById('quoteAuthor').textContent = `— ${q.author}`;
+
+  // Overall
+  const ov = getOverallStats();
+  document.getElementById('overallPct').textContent = ov.pct + '%';
+  document.getElementById('overallSub').textContent = `${ov.done} of ${ov.total} topics completed`;
+  document.getElementById('overallBar').style.width = ov.pct + '%';
+
+  // Day badge
+  const cd = getCurrentDay();
+  document.getElementById('dayBadge').textContent = `Day ${cd}`;
+  document.getElementById('streakCount').textContent = getStreak();
+
+  // Subject cards
+  const grid = document.getElementById('subjectCards');
+  grid.innerHTML = '';
+  Object.values(SUBJECTS).forEach(subj => {
+    const st = getSubjStats(subj.key);
+    const card = document.createElement('div');
+    card.className = `subj-card ${subj.cls}`;
+    card.innerHTML = `
+      <div class="subj-header">
+        <div class="subj-icon">${subj.icon}</div>
+        <div class="subj-pct">${st.pct}%</div>
+      </div>
+      <div class="subj-name">${subj.name}</div>
+      <div class="subj-count">${st.done} / ${st.total} topics</div>
+      <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${st.pct}%"></div></div>
+      <div class="subj-footer">
+        <span>${st.total - st.done} remaining</span>
+        <span class="click-hint">View topics →</span>
+      </div>
+    `;
+    card.onclick = () => {
+      switchTab('topics');
+      document.getElementById('topicsFilter').value = subj.key;
+      renderTopics();
+    };
+    grid.appendChild(card);
+  });
+
+  // Mini calendar
+  renderMiniCalendar();
+}
+
+function renderMiniCalendar() {
+  const cal = document.getElementById('miniCalendar');
+  cal.innerHTML = '';
+  const cd = getCurrentDay();
+  const sd = getStartDate();
+  for (let d = 1; d <= 120; d++) {
+    const dot = document.createElement('div');
+    dot.className = 'day-dot';
+    if (d === cd) dot.classList.add('current');
+    else if (d > cd) dot.classList.add('future');
+    if (state.notes[d]) dot.classList.add('has-notes');
+    dot.textContent = d;
+    dot.title = getDayDate(d) || `Day ${d}`;
+    dot.onclick = () => { currentDay = d; switchTab('daily'); renderDailyTracker(); };
+    cal.appendChild(dot);
+  }
+}
+
+// -- Topics --
+function renderTopics() {
+  const filter = document.getElementById('topicsFilter').value;
+  const status = document.getElementById('topicsStatus').value;
+  const container = document.getElementById('topicsContainer');
+  container.innerHTML = '';
+
+  Object.values(SUBJECTS).forEach(subj => {
+    if (filter !== 'all' && filter !== subj.key) return;
+
+    const section = document.createElement('div');
+    section.className = 'subject-section';
+    const st = getSubjStats(subj.key);
+
+    section.innerHTML = `
+      <div class="subject-section-header">
+        <div class="ssh-left">
+          <div class="ssh-icon">${subj.icon}</div>
+          <div>
+            <div class="ssh-name">${subj.name}</div>
+            <div class="ssh-meta">${st.done}/${st.total} completed</div>
+          </div>
+        </div>
+        <div class="ssh-right">
+          <div>
+            <div class="ssh-bar-bg"><div class="ssh-bar-fill" style="width:${st.pct}%;background:${subj.color}"></div></div>
+          </div>
+          <div class="ssh-pct" style="color:${subj.color}">${st.pct}%</div>
+          <div class="ssh-chevron">▼</div>
+        </div>
+      </div>
+      <div class="topics-list" id="tlist_${subj.key}"></div>
+    `;
+
+    const header = section.querySelector('.subject-section-header');
+    header.onclick = () => {
+      section.classList.toggle('open');
+    };
+
+    // Auto-open if single subject filter
+    if (filter !== 'all') section.classList.add('open');
+
+    const list = section.querySelector(`#tlist_${subj.key}`);
+    let topicIdx = 1;
+    Object.entries(subj.classes).forEach(([cls, topics]) => {
+      const ch = document.createElement('div');
+      ch.className = 'class-header';
+      ch.textContent = cls;
+      list.appendChild(ch);
+
+      topics.forEach((topicName, i) => {
+        const id = `${subj.key}_${cls}_${i}`;
+        const done = !!state.completed[id];
+        if (status === 'done' && !done) return;
+        if (status === 'pending' && done) return;
+
+        const row = document.createElement('div');
+        row.className = `topic-row ${done ? 'done' : ''}`;
+        row.innerHTML = `
+          <input type="checkbox" class="topic-cb" id="cb_${id}" ${done ? 'checked' : ''} data-id="${id}" />
+          <label class="topic-label" for="cb_${id}">${topicName}</label>
+          <span class="topic-num">#${topicIdx++}</span>
+        `;
+        const cb = row.querySelector('.topic-cb');
+        cb.addEventListener('change', () => toggleTopic(id, cb.checked));
+        list.appendChild(row);
+      });
+    });
+
+    container.appendChild(section);
+  });
+}
+
+// -- Daily Tracker --
+let currentDay = getCurrentDay();
+
+function renderDailyTracker() {
+  const cd = getCurrentDay();
+  document.getElementById('dayLabel').textContent = `Day ${currentDay}`;
+  const dateStr = getDayDate(currentDay);
+  const isToday = currentDay === cd;
+  document.getElementById('dayDate').innerHTML = dateStr +
+    (isToday ? '<span class="today-badge">TODAY</span>' : '');
+  document.getElementById('dayNotes').value = state.notes[currentDay] || '';
+  document.getElementById('prevDay').disabled = currentDay <= 1;
+  document.getElementById('nextDay').disabled = currentDay >= 120;
+
+  // Daily topics list — show all topics for easy checking
+  const list = document.getElementById('dailyTopicList');
+  list.innerHTML = '';
+  ALL_TOPICS.forEach(t => {
+    const done = !!state.completed[t.id];
+    const subj = SUBJECTS[t.subj];
+    const row = document.createElement('div');
+    row.className = 'mini-topic';
+    row.innerHTML = `
+      <input type="checkbox" class="topic-cb" id="dcb_${t.id}" ${done ? 'checked' : ''} data-id="${t.id}" style="flex-shrink:0" />
+      <label for="dcb_${t.id}" style="font-size:.82rem;color:${done?'var(--text3)':'var(--text)'};${done?'text-decoration:line-through':''};flex:1;cursor:pointer;line-height:1.3">${t.name}</label>
+      <span class="mini-topic-subj ms-${t.subj}">${subj.icon}</span>
+    `;
+    const cb = row.querySelector('.topic-cb');
+    cb.addEventListener('change', () => {
+      // also mark in dailyStudy
+      if (cb.checked) {
+        if (!state.dailyStudy[currentDay]) state.dailyStudy[currentDay] = {};
+        state.dailyStudy[currentDay][t.id] = true;
+        // mark streak for today
+        const today = new Date(); today.setHours(0,0,0,0);
+        state.streakData[today.toISOString().split('T')[0]] = true;
+      }
+      toggleTopic(t.id, cb.checked);
+      // re-render label
+      const lbl = row.querySelector('label');
+      lbl.style.color = cb.checked ? 'var(--text3)' : 'var(--text)';
+      lbl.style.textDecoration = cb.checked ? 'line-through' : 'none';
+    });
+    list.appendChild(row);
+  });
+}
+
+// -- Weekly Summary --
+function renderWeekly() {
+  // Week cards
+  const weekGrid = document.getElementById('weekGrid');
+  weekGrid.innerHTML = '';
+  const cd = getCurrentDay();
+  for (let w = 0; w < 17; w++) {
+    const startDay = w * 7 + 1;
+    const endDay   = Math.min(startDay + 6, 120);
+    if (startDay > 120) break;
+    const weekTopics = getWeekTopics(w);
+    const isActive  = cd >= startDay && cd <= endDay;
+    const isPast    = cd > endDay;
+    const card = document.createElement('div');
+    card.className = 'week-card';
+    card.style.borderColor = isActive ? 'var(--teal)' : '';
+    card.innerHTML = `
+      <div class="week-label">Week ${w+1} ${isActive ? '🟢' : isPast ? '✅' : '🔒'}</div>
+      <div class="week-num">${weekTopics}</div>
+      <div class="week-sub">Day ${startDay}–${endDay} · Topics studied</div>
+      <div class="week-bar-wrap"><div class="week-bar-fill" style="width:${Math.min(100,weekTopics*5)}%"></div></div>
+    `;
+    weekGrid.appendChild(card);
+  }
+
+  // Subject breakdown
+  const br = document.getElementById('weekSubjBreakdown');
+  br.innerHTML = '';
+  Object.values(SUBJECTS).forEach(subj => {
+    const st = getSubjStats(subj.key);
+    const card = document.createElement('div');
+    card.className = 'week-card';
+    card.style.borderTop = `3px solid ${subj.color}`;
+    card.innerHTML = `
+      <div class="week-label">${subj.icon} ${subj.name}</div>
+      <div class="week-num" style="color:${subj.color}">${st.pct}%</div>
+      <div class="week-sub">${st.done} / ${st.total} topics</div>
+      <div class="week-bar-wrap"><div class="week-bar-fill" style="width:${st.pct}%;background:${subj.color}"></div></div>
+    `;
+    br.appendChild(card);
+  });
+
+  // Achievements
+  const ag = document.getElementById('achievementsGrid');
+  ag.innerHTML = '';
+  const ov = getOverallStats();
+  const achList = [
+    { icon:'🚀', name:'First Step', desc:'Complete your first topic', earned: ov.done >= 1 },
+    { icon:'🔥', name:'On Fire', desc:'3+ day streak', earned: getStreak() >= 3 },
+    { icon:'⚗️', name:'Lab Rat', desc:'Complete 10 Chemistry topics', earned: getSubjStats('chem').done >= 10 },
+    { icon:'🔬', name:'Micro-Scholar', desc:'Complete 10 Biology topics', earned: getSubjStats('bio').done >= 10 },
+    { icon:'⚡', name:'Physicist', desc:'Complete 10 Physics topics', earned: getSubjStats('phy').done >= 10 },
+    { icon:'🕵️', name:'Detective', desc:'Complete 5 Criminology topics', earned: getSubjStats('crim').done >= 5 },
+    { icon:'📅', name:'Week One', desc:'Study for 7 consecutive days', earned: getStreak() >= 7 },
+    { icon:'💯', name:'Half Way', desc:'Complete 50% overall', earned: ov.pct >= 50 },
+    { icon:'🏆', name:'Champion', desc:'Complete 100% overall', earned: ov.pct >= 100 },
+    { icon:'🧬', name:'Bio Expert', desc:'Complete all Biology topics', earned: getSubjStats('bio').pct === 100 },
+    { icon:'🧪', name:'Chemist', desc:'Complete all Chemistry topics', earned: getSubjStats('chem').pct === 100 },
+    { icon:'⚛️', name:'Physicist Pro', desc:'Complete all Physics topics', earned: getSubjStats('phy').pct === 100 },
+  ];
+  achList.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'week-card';
+    card.style.opacity = a.earned ? '1' : '.45';
+    card.style.borderColor = a.earned ? 'var(--gold)' : '';
+    card.innerHTML = `
+      <div style="font-size:2rem;margin-bottom:6px">${a.icon}</div>
+      <div class="week-label" style="color:${a.earned?'var(--gold)':'var(--text2)'};font-size:.82rem">${a.name}</div>
+      <div class="week-sub" style="margin-top:4px">${a.desc}</div>
+      ${a.earned ? '<div style="font-size:.72rem;color:var(--teal);font-weight:700;margin-top:6px">✅ Earned!</div>' : ''}
+    `;
+    ag.appendChild(card);
+  });
+}
+
+/* -------------------------------------------------------
+   5. ACTIONS
+------------------------------------------------------- */
+function toggleTopic(id, checked) {
+  if (checked) {
+    state.completed[id] = true;
+  } else {
+    delete state.completed[id];
+  }
+  saveState(state);
+  updateProgressBars();
+  updateDayBadge();
+}
+
+function updateProgressBars() {
+  // Overall
+  const ov = getOverallStats();
+  const ovBar = document.getElementById('overallBar');
+  const ovPct = document.getElementById('overallPct');
+  const ovSub = document.getElementById('overallSub');
+  if (ovBar) { ovBar.style.width = ov.pct + '%'; ovPct.textContent = ov.pct + '%'; ovSub.textContent = `${ov.done} of ${ov.total} topics completed`; }
+
+  // Subject cards — update pct and bar without full re-render
+  document.querySelectorAll('.subj-card').forEach(card => {
+    const cls = card.className.split(' ').find(c => c !== 'subj-card');
+    if (!cls) return;
+    const key = cls; // phy/chem/bio/crim
+    if (!SUBJECTS[key]) return;
+    const st = getSubjStats(key);
+    const pctEl = card.querySelector('.subj-pct');
+    const cntEl = card.querySelector('.subj-count');
+    const barEl = card.querySelector('.prog-bar-fill');
+    const footL = card.querySelector('.subj-footer span:first-child');
+    if (pctEl) pctEl.textContent = st.pct + '%';
+    if (cntEl) cntEl.textContent = `${st.done} / ${st.total} topics`;
+    if (barEl) barEl.style.width = st.pct + '%';
+    if (footL) footL.textContent = `${st.total - st.done} remaining`;
+  });
+}
+
+function updateDayBadge() {
+  document.getElementById('streakCount').textContent = getStreak();
+  document.getElementById('dayBadge').textContent = `Day ${getCurrentDay()}`;
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+
+  if (name === 'dashboard') renderDashboard();
+  else if (name === 'topics')   renderTopics();
+  else if (name === 'daily')    renderDailyTracker();
+  else if (name === 'weekly')   renderWeekly();
+}
+
+function showToast(msg, icon = '✅') {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  document.getElementById('toastIcon').textContent = icon;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* -------------------------------------------------------
+   6. EVENT LISTENERS
+------------------------------------------------------- */
+
+// Nav tabs
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+// Filters
+document.getElementById('topicsFilter').addEventListener('change', renderTopics);
+document.getElementById('topicsStatus').addEventListener('change', renderTopics);
+
+// Day navigation
+document.getElementById('prevDay').addEventListener('click', () => {
+  if (currentDay > 1) { currentDay--; renderDailyTracker(); }
+});
+document.getElementById('nextDay').addEventListener('click', () => {
+  if (currentDay < 120) { currentDay++; renderDailyTracker(); }
+});
+document.getElementById('goToday').addEventListener('click', () => {
+  currentDay = getCurrentDay();
+  renderDailyTracker();
+});
+
+// Save notes
+document.getElementById('saveNotes').addEventListener('click', () => {
+  const txt = document.getElementById('dayNotes').value.trim();
+  state.notes[currentDay] = txt;
+  // mark streak for today if this is today
+  const cd = getCurrentDay();
+  if (currentDay === cd && txt) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    state.streakData[today.toISOString().split('T')[0]] = true;
+  }
+  saveState(state);
+  renderMiniCalendar();
+  showToast('Notes saved for Day ' + currentDay + '!', '📝');
+});
+
+// Theme toggle
+function applyTheme(t) {
+  state.theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeToggle').textContent = t === 'dark' ? '🌙' : '☀️';
+  saveState(state);
+}
+document.getElementById('themeToggle').addEventListener('click', () => {
+  applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+});
+document.getElementById('setDark').addEventListener('click', () => applyTheme('dark'));
+document.getElementById('setLight').addEventListener('click', () => applyTheme('light'));
+
+// Start date
+document.getElementById('setStartDate').addEventListener('click', () => {
+  const val = document.getElementById('startDateInput').value;
+  if (!val) return;
+  state.startDate = val;
+  saveState(state);
+  document.getElementById('currentStartDate').textContent = new Date(val).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  updateDayBadge();
+  renderDashboard();
+  showToast('Start date set! Day counter updated.', '📅');
+});
+
+// Export
+document.getElementById('exportData').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'studysync_backup.json';
+  a.click();
+  showToast('Data exported!', '📤');
+});
+
+// Reset
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('resetConfirm').classList.add('show');
+});
+document.getElementById('cancelReset').addEventListener('click', () => {
+  document.getElementById('resetConfirm').classList.remove('show');
+});
+document.getElementById('confirmReset').addEventListener('click', () => {
+  state = { completed:{}, notes:{}, dailyStudy:{}, startDate: state.startDate, theme: state.theme, streakData:{} };
+  saveState(state);
+  document.getElementById('resetConfirm').classList.remove('show');
+  renderDashboard();
+  showToast('All progress reset.', '🗑️');
+});
+
+// QR code
+document.getElementById('qrBtn').addEventListener('click', () => {
+  const popup = document.getElementById('qrPopup');
+  popup.classList.toggle('open');
+  if (popup.classList.contains('open')) {
+    let rawUrl = window.location.href;
+    // Ensure https protocol
+    rawUrl = rawUrl.replace(/^http:\/\//i, 'https://');
+    // Replace name koustuv → shrija (case-insensitive)
+    rawUrl = rawUrl.replace(/koustuv/gi, 'shrija');
+    const url = encodeURIComponent(rawUrl);
+    document.getElementById('qrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${url}&color=000000&bgcolor=ffffff&margin=10&qzone=2`;
+  }
+});
+document.addEventListener('click', e => {
+  if (!document.querySelector('.qr-wrap').contains(e.target)) {
+    document.getElementById('qrPopup').classList.remove('open');
+  }
+});
+
+/* -------------------------------------------------------
+   7. INIT
+------------------------------------------------------- */
+function init() {
+  // Set theme icon
+  document.getElementById('themeToggle').textContent = state.theme === 'dark' ? '🌙' : '☀️';
+
+  // Set start date display
+  if (state.startDate) {
+    document.getElementById('currentStartDate').textContent = new Date(state.startDate).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('startDateInput').value = state.startDate;
+  } else {
+    // Auto-set to today if not set
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDateInput').value = today;
+  }
+
+  // Render default tab
+  renderDashboard();
+}
+
+init();
+</script>
+</body>
+</html>
